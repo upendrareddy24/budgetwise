@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import - BudgetWise</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1 class="logo">
+                    <i class="fas fa-file-upload"></i>
+                    Import Bank Statements
+                </h1>
+                <div class="header-actions">
+                    <a href="index.html" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container" style="max-width: 900px;">
+            <div class="card">
+                <h3 class="card-title">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    Upload Files
+                </h3>
+
+                <div class="import-instructions">
+                    <h4>📋 How It Works:</h4>
+                    <ol>
+                        <li>Upload your bank statement (PDF or CSV)</li>
+                        <li>We'll extract and categorize transactions automatically</li>
+                        <li>Review and import to your budget</li>
+                    </ol>
+                    <p><strong>Supported:</strong> PDF & CSV files | <strong>Privacy:</strong> All processing happens
+                        locally in your browser</p>
+                </div>
+
+                <div class="file-upload-area" id="uploadArea">
+                    <i class="fas fa-cloud-upload-alt"
+                        style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <p style="font-size: 1.125rem; margin-bottom: 0.5rem;"><strong>Click or Drag & Drop</strong></p>
+                    <p style="font-size: 0.875rem; color: var(--text-secondary);">Select multiple PDF or CSV files</p>
+                    <input type="file" id="fileInput" accept=".pdf,.csv" multiple hidden>
+                </div>
+            </div>
+
+            <div class="card" id="previewCard" style="display: none;">
+                <h3 class="card-title">
+                    <i class="fas fa-eye"></i>
+                    Preview Transactions
+                </h3>
+                <div id="previewContent"></div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                    <button class="btn btn-primary" id="importBtn">
+                        <i class="fas fa-check"></i>
+                        Import <span id="importCount">0</span> Transactions
+                    </button>
+                </div>
+            </div>
+
+            <div class="card" id="resultCard" style="display: none;">
+                <h3 class="card-title">
+                    <i class="fas fa-check-circle"></i>
+                    Success!
+                </h3>
+                <div id="resultContent"></div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button class="btn btn-secondary" id="importMoreBtn">Import More</button>
+                    <a href="index.html" class="btn btn-primary">
+                        <i class="fas fa-chart-line"></i>
+                        View Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/csv-import.js"></script>
+    <script src="js/import-page.js"></script>
+</body>
+
+</html>
