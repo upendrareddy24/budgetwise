@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudgetWise - Smart Budget Tracker</title>
+    <meta name="description" content="Track expenses, manage budgets, and get AI-powered savings insights">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1 class="logo">
+                    <i class="fas fa-wallet"></i>
+                    BudgetWise
+                </h1>
+                <div class="header-actions">
+                    <button class="btn-icon" id="darkModeToggle" title="Toggle Dark Mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="btn-icon" id="exportBtn" title="Export Data">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Dashboard Overview -->
+            <section class="dashboard-overview">
+                <div class="stat-card balance-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Current Balance</p>
+                        <h2 class="stat-value" id="currentBalance">$0.00</h2>
+                        <p class="stat-change" id="balanceChange">+$0.00 this month</p>
+                    </div>
+                </div>
+
+                <div class="stat-card income-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-arrow-trend-up"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Income (This Month)</p>
+                        <h2 class="stat-value" id="monthlyIncome">$0.00</h2>
+                    </div>
+                </div>
+
+                <div class="stat-card expense-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-arrow-trend-down"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Expenses (This Month)</p>
+                        <h2 class="stat-value" id="monthlyExpenses">$0.00</h2>
+                    </div>
+                </div>
+
+                <div class="stat-card savings-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-piggy-bank"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Savings Goal</p>
+                        <h2 class="stat-value" id="savingsProgress">0%</h2>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="savingsBar"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Add Transaction -->
+            <section class="quick-add-section">
+                <div class="card">
+                    <h3 class="card-title">
+                        <i class="fas fa-plus-circle"></i>
+                        Quick Add Transaction
+                    </h3>
+                    <form id="transactionForm" class="transaction-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="transactionType">Type</label>
+                                <select id="transactionType" required>
+                                    <option value="expense">Expense</option>
+                                    <option value="income">Income</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="transactionAmount">Amount</label>
+                                <input type="number" id="transactionAmount" placeholder="0.00" step="0.01" min="0"
+                                    required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="transactionCategory">Category</label>
+                                <select id="transactionCategory" required>
+                                    <optgroup label="Expenses">
+                                        <option value="food">🍔 Food & Dining</option>
+                                        <option value="transport">🚗 Transportation</option>
+                                        <option value="shopping">🛍️ Shopping</option>
+                                        <option value="bills">💡 Bills & Utilities</option>
+                                        <option value="entertainment">🎬 Entertainment</option>
+                                        <option value="health">🏥 Healthcare</option>
+                                        <option value="education">📚 Education</option>
+                                        <option value="other">📦 Other</option>
+                                    </optgroup>
+                                    <optgroup label="Income">
+                                        <option value="salary">💼 Salary</option>
+                                        <option value="freelance">💻 Freelance</option>
+                                        <option value="investment">📈 Investment</option>
+                                        <option value="gift">🎁 Gift</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="transactionDescription">Description</label>
+                                <input type="text" id="transactionDescription" placeholder="e.g., Lunch at cafe">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="transactionDate">Date</label>
+                                <input type="date" id="transactionDate" required>
+                            </div>
+
+                            <div class="form-group form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-check"></i>
+                                    Add Transaction
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Main Content Grid -->
+            <div class="content-grid">
+                <!-- Insights & Analytics -->
+                <section class="insights-section">
+                    <div class="card">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-pie"></i>
+                            Spending Breakdown
+                        </h3>
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-line"></i>
+                            Spending Trend
+                        </h3>
+                        <canvas id="trendChart"></canvas>
+                    </div>
+
+                    <div class="card savings-recommendations">
+                        <h3 class="card-title">
+                            <i class="fas fa-lightbulb"></i>
+                            Smart Savings Tips
+                        </h3>
+                        <div id="savingsTips" class="tips-container">
+                            <p class="tip-placeholder">Add some transactions to get personalized savings
+                                recommendations!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Transactions List -->
+                <section class="transactions-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-list"></i>
+                                Recent Transactions
+                            </h3>
+                            <div class="filter-controls">
+                                <select id="filterPeriod">
+                                    <option value="all">All Time</option>
+                                    <option value="today">Today</option>
+                                    <option value="week">This Week</option>
+                                    <option value="month" selected>This Month</option>
+                                    <option value="year">This Year</option>
+                                </select>
+                                <select id="filterCategory">
+                                    <option value="all">All Categories</option>
+                                    <option value="food">Food & Dining</option>
+                                    <option value="transport">Transportation</option>
+                                    <option value="shopping">Shopping</option>
+                                    <option value="bills">Bills & Utilities</option>
+                                    <option value="entertainment">Entertainment</option>
+                                    <option value="health">Healthcare</option>
+                                    <option value="education">Education</option>
+                                    <option value="salary">Salary</option>
+                                    <option value="freelance">Freelance</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="transactionsList" class="transactions-list">
+                            <p class="empty-state">No transactions yet. Add your first transaction above!</p>
+                        </div>
+                    </div>
+
+                    <!-- Budget Overview -->
+                    <div class="card">
+                        <h3 class="card-title">
+                            <i class="fas fa-bullseye"></i>
+                            Budget Overview
+                        </h3>
+                        <div id="budgetOverview" class="budget-overview">
+                            <p class="empty-state">Set your monthly budgets to track spending limits.</p>
+                        </div>
+                        <button class="btn btn-secondary" id="setBudgetBtn">
+                            <i class="fas fa-cog"></i>
+                            Manage Budgets
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Budget Settings Modal -->
+    <div id="budgetModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Manage Monthly Budgets</h3>
+                <button class="modal-close" id="closeBudgetModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="budgetForm">
+                    <div class="budget-inputs">
+                        <div class="form-group">
+                            <label>🍔 Food & Dining</label>
+                            <input type="number" id="budget-food" placeholder="0.00" step="10" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>🚗 Transportation</label>
+                            <input type="number" id="budget-transport" placeholder="0.00" step="10" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>🛍️ Shopping</label>
+                            <input type="number" id="budget-shopping" placeholder="0.00" step="10" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>💡 Bills & Utilities</label>
+                            <input type="number" id="budget-bills" placeholder="0.00" step="10" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>🎬 Entertainment</label>
+                            <input type="number" id="budget-entertainment" placeholder="0.00" step="10" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>🏥 Healthcare</label>
+                            <input type="number" id="budget-health" placeholder="0.00" step="10" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>💰 Savings Goal</label>
+                            <input type="number" id="budget-savings" placeholder="0.00" step="50" min="0">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Save Budgets
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/analytics.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/savings.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
