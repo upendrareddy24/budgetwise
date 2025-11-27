@@ -66,88 +66,42 @@ async function processFiles(files) {
     if (allTransactions.length === 0) {
         showError('No transactions found. Please check your files.');
     } else {
-        showPreview();
-    }
-}
 
-async function processPDF(file) {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        if (result.rows.length === 0) return;
 
-    let text = '';
-    for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        text += content.items.map(item => item.str).join(' ') + '\n';
-    }
+        const mapping = CSVImport.detectColumns(result.headers);
+        if (mapping.date === -1 || mapping.amount === -1) return;
 
-    // Simple pattern matching for transactions
-    const lines = text.split('\n');
-    const datePattern = /(\d{2}\/\d{2}\/\d{2,4})/;
-    const amountPattern = /\$?([\d,]+\.\d{2})/g;
-
-    for (const line of lines) {
-        if (line.length < 10) continue;
-
-        const dateMatch = line.match(datePattern);
-        const amounts = line.match(amountPattern);
-
-        if (dateMatch && amounts && amounts.length > 0) {
-            const amount = parseFloat(amounts[amounts.length - 1].replace(/[\$,]/g, ''));
-            const description = line.replace(dateMatch[0], '').replace(amounts[amounts.length - 1], '').trim();
-
-            if (description && amount > 0) {
-                allTransactions.push({
-                    date: formatDate(dateMatch[1]),
-                    description: description.substring(0, 50),
-                    amount: amount,
-                    category: categorize(description),
-                    type: 'expense'
-                });
+        for (const row of result.rows) {
+            const transaction = CSVImport.rowToTransaction(row, mapping);
+            if (transaction) {
+                allTransactions.push(transaction);
             }
         }
     }
-}
 
-async function processCSV(file) {
-    const text = await file.text();
-    const result = CSVImport.parseCSV(text);
-
-    if (result.rows.length === 0) return;
-
-    const mapping = CSVImport.detectColumns(result.headers);
-    if (mapping.date === -1 || mapping.amount === -1) return;
-
-    for (const row of result.rows) {
-        const transaction = CSVImport.rowToTransaction(row, mapping);
-        if (transaction) {
-            allTransactions.push(transaction);
-        }
+    function categorize(desc) {
+        const d = desc.toLowerCase();
+        if (/restaurant|cafe|coffee|food|dining/i.test(d)) return 'food';
+        if (/gas|fuel|uber|lyft|taxi/i.test(d)) return 'transport';
+        if (/amazon|walmart|target|shop/i.test(d)) return 'shopping';
+        if (/electric|water|internet|phone|bill/i.test(d)) return 'bills';
+        if (/netflix|spotify|movie/i.test(d)) return 'entertainment';
+        if (/pharmacy|doctor|hospital|health/i.test(d)) return 'health';
+        return 'other';
     }
-}
 
-function categorize(desc) {
-    const d = desc.toLowerCase();
-    if (/restaurant|cafe|coffee|food|dining/i.test(d)) return 'food';
-    if (/gas|fuel|uber|lyft|taxi/i.test(d)) return 'transport';
-    if (/amazon|walmart|target|shop/i.test(d)) return 'shopping';
-    if (/electric|water|internet|phone|bill/i.test(d)) return 'bills';
-    if (/netflix|spotify|movie/i.test(d)) return 'entertainment';
-    if (/pharmacy|doctor|hospital|health/i.test(d)) return 'health';
-    return 'other';
-}
+    function formatDate(dateStr) {
+        const parts = dateStr.split('/');
+        let year = parseInt(parts[2]);
+        if (year < 100) year += year < 50 ? 2000 : 1900;
+        return `${year}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+    }
 
-function formatDate(dateStr) {
-    const parts = dateStr.split('/');
-    let year = parseInt(parts[2]);
-    if (year < 100) year += year < 50 ? 2000 : 1900;
-    return `${year}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
-}
+    function showPreview() {
+        document.getElementById('importCount').textContent = allTransactions.length;
 
-function showPreview() {
-    document.getElementById('importCount').textContent = allTransactions.length;
-
-    const html = `
+        const html = `
         <div style="max-height: 400px; overflow-y: auto;">
             <table style="width: 100%; border-collapse: collapse;">
                 <thead style="position: sticky; top: 0; background: var(--bg-card);">
@@ -172,15 +126,15 @@ function showPreview() {
         </div>
     `;
 
-    document.getElementById('previewContent').innerHTML = html;
-    document.getElementById('previewCard').style.display = 'block';
-    document.getElementById('resultCard').style.display = 'none';
-}
+        document.getElementById('previewContent').innerHTML = html;
+        document.getElementById('previewCard').style.display = 'block';
+        document.getElementById('resultCard').style.display = 'none';
+    }
 
-function confirmImport() {
-    allTransactions.forEach(t => Storage.addTransaction(t));
+    function confirmImport() {
+        allTransactions.forEach(t => Storage.addTransaction(t));
 
-    document.getElementById('resultContent').innerHTML = `
+        document.getElementById('resultContent').innerHTML = `
         <div style="text-align: center; padding: 2rem;">
             <i class="fas fa-check-circle" style="font-size: 4rem; color: var(--success); margin-bottom: 1rem;"></i>
             <h3>Successfully imported ${allTransactions.length} transactions!</h3>
@@ -188,49 +142,49 @@ function confirmImport() {
         </div>
     `;
 
-    document.getElementById('previewCard').style.display = 'none';
-    document.getElementById('resultCard').style.display = 'block';
-}
+        document.getElementById('previewCard').style.display = 'none';
+        document.getElementById('resultCard').style.display = 'block';
+    }
 
-function showLoading() {
-    document.getElementById('previewContent').innerHTML = `
+    function showLoading() {
+        document.getElementById('previewContent').innerHTML = `
         <div style="text-align: center; padding: 3rem;">
             <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: var(--primary);"></i>
             <p style="margin-top: 1rem;">Processing files...</p>
         </div>
     `;
-    document.getElementById('previewCard').style.display = 'block';
-}
+        document.getElementById('previewCard').style.display = 'block';
+    }
 
-function showError(message) {
-    document.getElementById('previewContent').innerHTML = `
+    function showError(message) {
+        document.getElementById('previewContent').innerHTML = `
         <div style="text-align: center; padding: 3rem;">
             <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: var(--danger);"></i>
             <h3 style="margin-top: 1rem;">Error</h3>
             <p style="color: var(--text-secondary); margin-top: 0.5rem;">${message}</p>
         </div>
     `;
-    document.getElementById('previewCard').style.display = 'block';
-    document.getElementById('importBtn').style.display = 'none';
-}
+        document.getElementById('previewCard').style.display = 'block';
+        document.getElementById('importBtn').style.display = 'none';
+    }
 
-function reset() {
-    allTransactions = [];
-    document.getElementById('fileInput').value = '';
-    document.getElementById('previewCard').style.display = 'none';
-    document.getElementById('resultCard').style.display = 'none';
-    document.getElementById('importBtn').style.display = 'inline-flex';
-}
+    function reset() {
+        allTransactions = [];
+        document.getElementById('fileInput').value = '';
+        document.getElementById('previewCard').style.display = 'none';
+        document.getElementById('resultCard').style.display = 'none';
+        document.getElementById('importBtn').style.display = 'inline-flex';
+    }
 
-function getCategoryIcon(category) {
-    const icons = {
-        food: '🍔 Food',
-        transport: '🚗 Transport',
-        shopping: '🛍️ Shopping',
-        bills: '💡 Bills',
-        entertainment: '🎬 Entertainment',
-        health: '🏥 Health',
-        other: '📦 Other'
-    };
-    return icons[category] || category;
-}
+    function getCategoryIcon(category) {
+        const icons = {
+            food: '🍔 Food',
+            transport: '🚗 Transport',
+            shopping: '🛍️ Shopping',
+            bills: '💡 Bills',
+            entertainment: '🎬 Entertainment',
+            health: '🏥 Health',
+            other: '📦 Other'
+        };
+        return icons[category] || category;
+    }
